@@ -2,7 +2,8 @@
 
 use bevy::prelude::*;
 use bevy_spicy_networking::{ClientNetworkEvent, NetworkClient, NetworkData, NetworkSettings};
-use std::net::SocketAddr;
+use url::Url;
+
 mod shared;
 
 fn main() {
@@ -205,14 +206,14 @@ fn handle_connect_button(
             } else {
                 text.sections[0].value = String::from("Connecting...");
                 messages.add(SystemMessage::new("Connecting to server..."));
-                let ip_address = "127.0.0.1".parse().unwrap();
-
+                let ip_address = "ws://127.0.0.1:9999";
+                
                 info!("Address of the server: {}", ip_address);
 
-                let socket_address = SocketAddr::new(ip_address, 9999);
+                let url = Url::parse(ip_address).unwrap();
 
                 net.connect(
-                    socket_address,
+                    url.clone(),
                     NetworkSettings {
                         max_packet_length: 10 * 1024 * 1024,
                     },

@@ -4,6 +4,8 @@ use crate::ConnectionId;
 pub enum NetworkError {
     #[error("An error occured when accepting a new connection: {0}")]
     Accept(std::io::Error),
+    #[error("An error occured when trying to connect with a WebSocket: {0}")]
+    WSAccept(tungstenite::Error),
     #[error("Could not find connection with id: {0}")]
     ConnectionNotFound(ConnectionId),
     #[error("Connection closed with id: {0}")]
@@ -13,5 +15,7 @@ pub enum NetworkError {
     #[error("An error occured when trying to start listening for new connections: {0}")]
     Listen(std::io::Error),
     #[error("An error occured when trying to connect: {0}")]
-    Connection(std::io::Error),
+    Connection(tungstenite::Error),
+
 }
+

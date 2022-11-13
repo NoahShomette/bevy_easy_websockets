@@ -1,15 +1,26 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, result, sync::Arc};
+use std::io::BufRead;
+use std::net::{IpAddr, Ipv4Addr};
 
 use bevy::{prelude::*, utils::Uuid};
 use dashmap::DashMap;
 use derive_more::Display;
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream, ToSocketAddrs},
     runtime::Runtime,
     sync::mpsc::{unbounded_channel, UnboundedSender},
     task::JoinHandle,
 };
+
+use tokio_tungstenite::{
+    WebSocketStream,
+    accept_async
+};
+use futures_util::{SinkExt, StreamExt};
+use futures_util::future::err;
+use tungstenite::Message;
+use url::{Host, Url};
+
 
 use crate::{
     error::NetworkError,
@@ -20,7 +31,7 @@ use crate::{
 #[derive(Display)]
 #[display(fmt = "Incoming Connection from {}", addr)]
 struct NewIncomingConnection {
-    socket: TcpStream,
+    socket: WebSocketStream<TcpStream>,
     addr: SocketAddr,
 }
 
@@ -118,11 +129,32 @@ impl NetworkServer {
             let new_connections = new_connections;
             loop {
                 let resp = match listener.accept().await {
-                    Ok((socket, addr)) => Ok(NewIncomingConnection { socket, addr }),
+                    Ok((socket, addr)) => {
+                        info!("addr: {}", addr);
+                        Ok((socket, addr)) 
+                    },
                     Err(error) => Err(NetworkError::Accept(error)),
                 };
+                
+                let result = match resp{
+                    Ok((socket, addr)) => {
+                        info!("received new connection");
+                        let ws_stream = accept_async(socket).await;
+                        match ws_stream{
+                            Ok(ws_stream) => {
+                                info!("received new connection");
+                                Ok(NewIncomingConnection{ socket: ws_stream, addr })
+                            }
+                            Err(error) => {
+                                Err(NetworkError::WSAccept(error))
+                            }
+                        }
+                        
+                    }
+                    Err(error) => Err(error),
+                };
 
-                match new_connections.send(resp) {
+                match new_connections.send(result) {
                     Ok(_) => (),
                     Err(err) => {
                         error!("Cannot accept new connections, channel closed: {}", err);
@@ -191,10 +223,10 @@ impl NetworkServer {
         if let Some(conn) = self.server_handle.take() {
             conn.abort();
             for conn in self.established_connections.iter() {
-                let _ = self.disconnected_connections.sender.send(*conn.key());
+                let _ = self.disconnected_connections.sender.send(conn.key().clone());
             }
             self.established_connections.clear();
-            self.recv_message_map.clear();
+            self.recv_message_map.clear(); 
 
             self.new_connections.receiver.try_iter().for_each(|_| ());
         }
@@ -222,69 +254,49 @@ pub(crate) fn handle_new_incoming_connections(
     for inc_conn in server.new_connections.receiver.try_iter() {
         match inc_conn {
             Ok(new_conn) => {
-                match new_conn.socket.set_nodelay(true) {
-                    Ok(_) => (),
-                    Err(e) => error!("Could not set nodelay for [{}]: {}", new_conn, e),
-                }
-
                 let conn_id = ConnectionId {
                     uuid: Uuid::new_v4(),
-                    addr: new_conn.addr,
+                    url: Url::parse(&new_conn.addr.to_string().clone()).unwrap_or_else(|_| Url::parse("localhost:9999").unwrap()),
+                    
                 };
-
-                let (read_socket, send_socket) = new_conn.socket.into_split();
+                let conn_id_clone = conn_id.clone();
+                let (send_socket, read_socket) = new_conn.socket.split();
                 let recv_message_map = server.recv_message_map.clone();
-                let network_settings = network_settings.clone();
                 let disconnected_connections = server.disconnected_connections.sender.clone();
 
                 let (send_message, recv_message) = unbounded_channel();
 
                 server.established_connections.insert(
-                    conn_id,
+                    conn_id.clone(),
                     ClientConnection {
-                        id: conn_id,
+                        id: conn_id.clone(),
                         receive_task: server.runtime.spawn(async move {
                             let recv_message_map = recv_message_map;
-                            let network_settings = network_settings;
 
                             let mut read_socket = read_socket;
-
-                            let mut buffer: Vec<u8> = (0..network_settings.max_packet_length).map(|_| 0).collect();
-
+                            
                             trace!("Starting listen task for {}", conn_id);
                             loop {
-                                trace!("Listening for length!");
+                                trace!("Listening for new message!");
 
-                                let length = match read_socket.read_u32().await {
-                                    Ok(len) => len as usize,
-                                    Err(err) => {
-                                        // If we get an EOF here, the connection was broken and we simply report a 'disconnected' signal
-                                        if err.kind() == std::io::ErrorKind::UnexpectedEof { break }
-
-                                        error!("Encountered error while reading length [{}]: {}", conn_id, err);
-                                        break;
+                                let msg = read_socket.next().await;
+                                let msg = match msg {
+                                    Some(msg) => {
+                                        match msg {
+                                            Ok(msg) => {
+                                                msg
+                                            }
+                                            Err(_) => {
+                                                trace!("msg unwrap error");
+                                                break
+                                            }
+                                        }
                                     }
+                                    None => break,
                                 };
 
-                                trace!("Received packet with length: {}", length);
 
-                                if length > network_settings.max_packet_length {
-                                    error!("Received too large packet from [{}]: {} > {}", conn_id, length, network_settings.max_packet_length);
-                                    break;
-                                }
-
-
-                                match read_socket.read_exact(&mut buffer[..length]).await {
-                                    Ok(_) => (),
-                                    Err(err) => {
-                                        error!("Encountered error while reading stream of length {} [{}]: {}", length, conn_id, err);
-                                        break;
-                                    }
-                                }
-
-                                trace!("Read buffer of length {}", length);
-
-                                let packet: NetworkPacket = match bincode::deserialize(&buffer[..length]) {
+                                let packet: NetworkPacket = match bincode::deserialize(&msg.into_data()[..]) {
                                     Ok(packet) => packet,
                                     Err(err) => {
                                         error!("Failed to decode network packet from [{}]: {}", conn_id, err);
@@ -295,16 +307,16 @@ pub(crate) fn handle_new_incoming_connections(
                                 trace!("Created a network packet");
 
                                 match recv_message_map.get_mut(&packet.kind[..]) {
-                                    Some(mut packets) => packets.push((conn_id, packet.data)),
+                                    Some(mut packets) => packets.push((conn_id.clone(), packet.data)),
                                     None => {
                                         error!("Could not find existing entries for message kinds: {:?}", packet);
                                     }
                                 }
 
-                                debug!("Received new message of length: {}", length);
+                                //debug!("Received new message of length: {}", length);
                             }
 
-                            match disconnected_connections.send(conn_id) {
+                            match disconnected_connections.send(conn_id.clone()) {
                                 Ok(_) => (),
                                 Err(_) => {
                                     error!("Could not send disconnected event, because channel is disconnected");
@@ -323,21 +335,10 @@ pub(crate) fn handle_new_incoming_connections(
                                         continue;
                                     }
                                 };
-
-                                let len = encoded.len();
-
-                                match send_socket.write_u32(len as u32).await {
-                                    Ok(_) => (),
-                                    Err(err) => {
-                                        error!("Could not send packet length: {:?}: {}", len, err);
-                                        return;
-                                    }
-                                }
-
-                                match send_socket.write_all(&encoded).await {
-                                    Ok(_) => (),
-                                    Err(err) => {
-                                        error!("Could not send packet: {:?}: {}", message, err);
+                                match send_socket.send(Message::from(encoded)).await{
+                                    Ok(_) => {}
+                                    Err(err) => {                                        
+                                        error!("Could not send message: {}", err);
                                         return;
                                     }
                                 }
@@ -348,7 +349,7 @@ pub(crate) fn handle_new_incoming_connections(
                     },
                 );
 
-                network_events.send(ServerNetworkEvent::Connected(conn_id));
+                network_events.send(ServerNetworkEvent::Connected(conn_id_clone));
             }
 
             Err(err) => {
