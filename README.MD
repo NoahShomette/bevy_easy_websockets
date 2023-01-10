@@ -28,7 +28,7 @@ Bevy_simple_websockets is intended to support both games and other crates, netwo
 - [Bevy Version Compatibility](#bevy-version-compatibility)
 - [Supported Platforms](#supported-platforms)
 - [Roadmap](#roadmap)
-- [Crates using `bevy_spicy_networking`](#crates-using-bevy_spicy_networking)
+- [Crates using `bevy_simple_websockets`](#crates-using-bevy_simple_websockets)
 - [Contributing](#contributing)
 
 
