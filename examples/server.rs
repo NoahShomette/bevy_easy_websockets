@@ -3,6 +3,8 @@ use bevy::prelude::*;
 use bevy_spicy_networking::{ConnectionId, NetworkData, NetworkServer, ServerNetworkEvent};
 use std::net::SocketAddr;
 use std::time::Duration;
+use url::form_urlencoded::parse;
+use url::Url;
 
 mod shared;
 
@@ -32,11 +34,15 @@ fn main() {
 // On the server side, you need to setup networking. You do not need to do so at startup, and can start listening
 // at any time.
 fn setup_networking(mut net: ResMut<NetworkServer>) {
-    let ip_address = "127.0.0.1".parse().expect("Could not parse ip address");
+    let ip_address = "127.0.0.1";
+    //.expect("Could not parse ip address");
+    //let url = Url::parse(ip_address).unwrap();
 
-    info!("Address of the server: {}", ip_address);
+    //info!("Address of the server: {}", url);
 
-    let socket_address = SocketAddr::new(ip_address, 9999);
+    let socket_address = SocketAddr::new(ip_address.parse().unwrap(), 9999);
+    
+    //info!("Address of the server: {}", socket_address);
 
     match net.listen(socket_address) {
         Ok(_) => (),
@@ -59,7 +65,7 @@ fn handle_connection_events(
 ) {
     for event in network_events.iter() {
         if let ServerNetworkEvent::Connected(conn_id) = event {
-            commands.spawn((Player(*conn_id),));
+            commands.spawn((Player(conn_id.clone()),));
 
             // Broadcasting sends the message to all connected players! (Including the just connected one in this case)
             net.broadcast(shared::NewChatMessage {

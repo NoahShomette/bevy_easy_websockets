@@ -158,6 +158,7 @@ use derive_more::{Deref, Display};
 use error::NetworkError;
 pub use network_message::{ClientMessage, NetworkMessage, ServerMessage};
 use serde::{Deserialize, Serialize};
+use url::{Host, Url};
 pub use server::{AppNetworkServerMessage, NetworkServer};
 
 struct SyncChannel<T> {
@@ -173,8 +174,8 @@ impl<T> SyncChannel<T> {
     }
 }
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy, Display, Debug)]
-#[display(fmt = "Connection from {} with ID={}", addr, uuid)]
+#[derive(Hash, PartialEq, Eq, Clone, Display, Debug)]
+#[display(fmt = "Connection from {} with ID={}", url, uuid)]
 /// A [`ConnectionId`] denotes a single connection
 ///
 /// Use [`ConnectionId::is_server`] whether it is a connection to a server
@@ -182,21 +183,22 @@ impl<T> SyncChannel<T> {
 /// is no ambiguity.
 pub struct ConnectionId {
     uuid: Uuid,
-    addr: SocketAddr,
+    url: Url,
 }
 
 impl ConnectionId {
     /// Get the address associated to this connection id
     ///
     /// This contains the IP/Port information
-    pub fn address(&self) -> SocketAddr {
-        self.addr
+    pub fn address(&self) -> Option<Host<&str>> {
+        
+        self.url.host()
     }
 
-    pub(crate) fn server(addr: Option<SocketAddr>) -> ConnectionId {
+    pub(crate) fn server(addr: Option<Url>) -> ConnectionId {
         ConnectionId {
             uuid: Uuid::nil(),
-            addr: addr.unwrap_or_else(|| SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0)),
+            url: addr.unwrap_or_else(|| Url::parse("ws://127.0.0.1:9999").unwrap()),
         }
     }
 
@@ -260,7 +262,7 @@ impl<T> NetworkData<T> {
 
     /// The source of this network data
     pub fn source(&self) -> ConnectionId {
-        self.source
+        self.source.clone()
     }
 
     /// Get the inner data out of it
