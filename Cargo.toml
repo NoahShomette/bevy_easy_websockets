@@ -1,11 +1,11 @@
 [package]
-name = "bevy_spicy_networking"
-version = "0.5.2"
-authors = ["Neikos <neikos@neikos.email>"]
+name = "bevy_simple_websockets"
+version = "0.1.0"
+authors = ["Noah Shomette <noahshomette@gmail.com>"]
 edition = "2021"
-description = "A spicy 🌶🌶🌶 and simple networking plugin for Bevy"
+description = "A simple and crate level extensible websocket networking solution"
 readme = "README.md"
-repository = "https://github.com/CabbitStudios/bevy_spicy_networking"
+repository = "https://github.com/NoahShomette/bevy_simple_websockets"
 license = "MIT"
 categories = ["game-development", "network-programming"]
 autoexamples = false
@@ -22,8 +22,6 @@ name = "client"
 name = "server"
 
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 bevy = { version = "0.9.0", features = [], default-features = false }
 bincode = "1.3.2"
@@ -35,7 +33,6 @@ serde = { version = "1.0.125", features = ["derive"] }
 thiserror = "1.0.24"
 tokio = { version = "1.21.2", features = ["net", "io-util", "sync", "rt-multi-thread"] }
 typetag = "0.2.3"
-
 url = "2.3.1"
 tokio-tungstenite = "0.17.2"
 tungstenite = "0.17.3"

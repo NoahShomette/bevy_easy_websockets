@@ -16,6 +16,4 @@ pub enum NetworkError {
     Listen(std::io::Error),
     #[error("An error occured when trying to connect: {0}")]
     Connection(tungstenite::Error),
-
 }
-

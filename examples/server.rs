@@ -1,10 +1,8 @@
 use bevy::app::ScheduleRunnerSettings;
 use bevy::prelude::*;
-use bevy_spicy_networking::{ConnectionId, NetworkData, NetworkServer, ServerNetworkEvent};
+use bevy_simple_websockets::{ConnectionId, NetworkData, NetworkServer, ServerNetworkEvent};
 use std::net::SocketAddr;
 use std::time::Duration;
-use url::form_urlencoded::parse;
-use url::Url;
 
 mod shared;
 
@@ -18,7 +16,7 @@ fn main() {
 
     // Before we can register the potential message types, we
     // need to add the plugin
-    app.add_plugin(bevy_spicy_networking::ServerPlugin);
+    app.add_plugin(bevy_simple_websockets::ServerPlugin);
 
     // A good way to ensure that you are not forgetting to register
     // any messages is to register them where they are defined!
@@ -35,14 +33,8 @@ fn main() {
 // at any time.
 fn setup_networking(mut net: ResMut<NetworkServer>) {
     let ip_address = "127.0.0.1";
-    //.expect("Could not parse ip address");
-    //let url = Url::parse(ip_address).unwrap();
-
-    //info!("Address of the server: {}", url);
 
     let socket_address = SocketAddr::new(ip_address.parse().unwrap(), 9999);
-    
-    //info!("Address of the server: {}", socket_address);
 
     match net.listen(socket_address) {
         Ok(_) => (),

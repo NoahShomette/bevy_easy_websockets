@@ -5,7 +5,7 @@ use downcast_rs::DowncastSync;
 ///
 /// ## Example
 /// ```rust
-/// use bevy_spicy_networking::NetworkMessage;
+/// use bevy_simple_websockets::NetworkMessage;
 /// use serde::{Serialize, Deserialize};
 ///
 /// #[derive(Serialize, Deserialize)]

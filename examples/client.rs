@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use bevy::prelude::*;
-use bevy_spicy_networking::{ClientNetworkEvent, NetworkClient, NetworkData, NetworkSettings};
+use bevy_simple_websockets::{ClientNetworkEvent, NetworkClient, NetworkData, NetworkSettings};
 use url::Url;
 
 mod shared;
@@ -13,7 +13,7 @@ fn main() {
 
     // You need to add the `ClientPlugin` first before you can register
     // `ClientMessage`s
-    app.add_plugin(bevy_spicy_networking::ClientPlugin);
+    app.add_plugin(bevy_simple_websockets::ClientPlugin);
 
     // A good way to ensure that you are not forgetting to register
     // any messages is to register them where they are defined!
@@ -207,7 +207,7 @@ fn handle_connect_button(
                 text.sections[0].value = String::from("Connecting...");
                 messages.add(SystemMessage::new("Connecting to server..."));
                 let ip_address = "ws://127.0.0.1:9999";
-                
+
                 info!("Address of the server: {}", ip_address);
 
                 let url = Url::parse(ip_address).unwrap();
@@ -371,7 +371,7 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                                         color: Color::BLACK,
                                     },
                                 )
-                                    .with_text_alignment(TextAlignment::CENTER),
+                                .with_text_alignment(TextAlignment::CENTER),
                             );
                         });
                 });

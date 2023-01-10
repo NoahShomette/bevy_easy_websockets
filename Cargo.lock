@@ -615,8 +615,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_spicy_networking"
-version = "0.6.0"
+name = "bevy_simple_websockets"
+version = "0.1.0"
 dependencies = [
  "bevy",
  "bincode",

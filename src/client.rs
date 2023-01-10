@@ -1,18 +1,18 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::sync::Arc;
 
 use bevy::prelude::*;
 use dashmap::DashMap;
 use derive_more::Display;
 use futures_util::{SinkExt, StreamExt};
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::{TcpStream, ToSocketAddrs},
+    io::AsyncReadExt,
+    net::TcpStream,
     runtime::Runtime,
     sync::mpsc::{unbounded_channel, UnboundedSender},
     task::JoinHandle,
 };
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
-use tungstenite::{Error, Message};
+use tungstenite::Message;
 use url::Url;
 
 use crate::{
@@ -45,13 +45,21 @@ pub struct NetworkClient {
     server_connection: Option<ServerConnection>,
     recv_message_map: Arc<DashMap<&'static str, Vec<Box<dyn NetworkMessage>>>>,
     network_events: SyncChannel<ClientNetworkEvent>,
-    connection_events: SyncChannel<(WebSocketStream<MaybeTlsStream<TcpStream>>, Url, NetworkSettings)>,
+    connection_events: SyncChannel<(
+        WebSocketStream<MaybeTlsStream<TcpStream>>,
+        Url,
+        NetworkSettings,
+    )>,
 }
 
 impl std::fmt::Debug for NetworkClient {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(conn) = self.server_connection.as_ref() {
-            write!(f, "NetworkClient [Connected to {}]", conn.peer_addr.host().unwrap())?;
+            write!(
+                f,
+                "NetworkClient [Connected to {}]",
+                conn.peer_addr.host().unwrap()
+            )?;
         } else {
             write!(f, "NetworkClient [Not Connected]")?;
         }
@@ -78,11 +86,7 @@ impl NetworkClient {
     ///
     /// ## Note
     /// This will disconnect you first from any existing server connections
-    pub fn connect(
-        &mut self,
-        url: Url,
-        network_settings: NetworkSettings,
-    ) {
+    pub fn connect(&mut self, url: Url, network_settings: NetworkSettings) {
         debug!("Starting connection");
 
         self.disconnect();
@@ -91,11 +95,11 @@ impl NetworkClient {
         let connection_event_sender = self.connection_events.sender.clone();
 
         self.runtime.spawn(async move {
-            
             let (stream, _response) = match connect_async(url.clone()).await {
                 Ok((stream, response)) => (stream, response),
                 Err(error) => {
-                    match network_error_sender.send(ClientNetworkEvent::Error(NetworkError::Connection(error)))
+                    match network_error_sender
+                        .send(ClientNetworkEvent::Error(NetworkError::Connection(error)))
                     {
                         Ok(_) => (),
                         Err(err) => {
@@ -247,15 +251,12 @@ pub fn handle_connection_event(
     net_res.server_connection = Some(ServerConnection {
         peer_addr: peer_url.clone(),
         send_task: net_res.runtime.spawn(async move {
-            
             let mut recv_message = recv_message;
             let mut send_socket = send_socket;
 
             debug!("Starting new server connection, sending task");
 
-
             while let Some(message) = recv_message.recv().await {
-                
                 let encoded = match bincode::serialize(&message) {
                     Ok(encoded) => encoded,
                     Err(err) => {
@@ -263,16 +264,13 @@ pub fn handle_connection_event(
                         continue;
                     }
                 };
-                
-                match send_socket.send(Message::from(encoded)).await{
-                    Ok(_) => {
-                        
-                    }
+
+                match send_socket.send(Message::from(encoded)).await {
+                    Ok(_) => {}
                     Err(err) => {
                         error!("Could not send packet {:?}", err);
                     }
                 }
-
             }
 
             let _ = network_event_sender_two.send(ClientNetworkEvent::Disconnected);
@@ -280,26 +278,21 @@ pub fn handle_connection_event(
         receive_task: net_res.runtime.spawn(async move {
             let mut read_socket = read_socket;
             let recv_message_map = recv_message_map;
-            
+
             loop {
                 trace!("Listening for new message!");
 
                 let msg = read_socket.next().await;
                 let msg = match msg {
-                    Some(msg) => {
-                        match msg {
-                            Ok(msg) => {
-                                msg
-                            }
-                            Err(_) => {
-                                trace!("msg unwrap error");
-                                break
-                            }
+                    Some(msg) => match msg {
+                        Ok(msg) => msg,
+                        Err(_) => {
+                            trace!("msg unwrap error");
+                            break;
                         }
-                    }
+                    },
                     None => break,
                 };
-
 
                 let packet: NetworkPacket = match bincode::deserialize(&msg.into_data()[..]) {
                     Ok(packet) => packet,
@@ -314,13 +307,15 @@ pub fn handle_connection_event(
                 match recv_message_map.get_mut(&packet.kind[..]) {
                     Some(mut packets) => packets.push(packet.data),
                     None => {
-                        error!("Could not find existing entries for message kinds: {:?}", packet);
+                        error!(
+                            "Could not find existing entries for message kinds: {:?}",
+                            packet
+                        );
                     }
                 }
 
-                //debug!("Received new message of length: {}", length);
+                debug!("Received new message of length: {}", length);
             }
-            
 
             let _ = network_event_sender.send(ClientNetworkEvent::Disconnected);
         }),

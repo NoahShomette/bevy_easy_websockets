@@ -13,7 +13,10 @@
 #![allow(clippy::type_complexity)]
 
 /*!
-A spicy simple networking plugin for Bevy
+A simple websocket based networking plugin for Bevy
+
+This library was forked from [Bevy_Spicy_Networking](https://github.com/CabbitStudios/bevy_spicy_networking).
+This library would not be here if it wasn't for the excellent work done by CabbitStudios originally. Thank you!
 
 Using this plugin is meant to be straightforward. You have one server and multiple clients.
 You simply add either the `ClientPlugin` or the `ServerPlugin` to the respective bevy app,
@@ -24,7 +27,7 @@ can start receiving packets as events of `NetworkData<T>`.
 ## Example Client
 ```rust,no_run
 use bevy::prelude::*;
-use bevy_spicy_networking::{ClientPlugin, NetworkData, NetworkMessage, ServerMessage, ClientNetworkEvent, AppNetworkServerMessage};
+use bevy_simple_websockets::{ClientPlugin, NetworkData, NetworkMessage, ServerMessage, ClientNetworkEvent, AppNetworkServerMessage};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
@@ -69,7 +72,7 @@ fn handle_connection_events(mut network_events: EventReader<ClientNetworkEvent>,
 ## Example Server
 ```rust,no_run
 use bevy::prelude::*;
-use bevy_spicy_networking::{ServerPlugin, NetworkData, NetworkMessage, NetworkServer, ServerMessage, ClientMessage, ServerNetworkEvent, AppNetworkClientMessage};
+use bevy_simple_websockets::{ServerPlugin, NetworkData, NetworkMessage, NetworkServer, ServerMessage, ClientMessage, ServerNetworkEvent, AppNetworkClientMessage};
 
 use serde::{Serialize, Deserialize};
 #[derive(Serialize, Deserialize)]
@@ -139,17 +142,17 @@ For a more
 
 ## Caveats
 
-Currently this library uses TCP under the hood. Meaning that it has all its drawbacks, where for example a very large update packet can
-'block' the connection. This is currently not built for fast-paced games that are not meant to be played on LAN, but should suffice for slow-paced
-games where less-stringent latency delays might be acceptable.
+This library is built using WebSockets and thus TCP at the core. It is reliable and ordered meaning
+large packets can block the connection while they are transmitted. This is generally not suitable for
+fast paced or competitive games. It should work for slower paced games or games where latency delays
+are acceptable
+
 */
 
 mod client;
 mod error;
 mod network_message;
 mod server;
-
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use bevy::{prelude::*, utils::Uuid};
 pub use client::{AppNetworkClientMessage, NetworkClient};
@@ -158,8 +161,8 @@ use derive_more::{Deref, Display};
 use error::NetworkError;
 pub use network_message::{ClientMessage, NetworkMessage, ServerMessage};
 use serde::{Deserialize, Serialize};
-use url::{Host, Url};
 pub use server::{AppNetworkServerMessage, NetworkServer};
+use url::{Host, Url};
 
 struct SyncChannel<T> {
     pub(crate) sender: Sender<T>,
@@ -178,7 +181,7 @@ impl<T> SyncChannel<T> {
 #[display(fmt = "Connection from {} with ID={}", url, uuid)]
 /// A [`ConnectionId`] denotes a single connection
 ///
-/// Use [`ConnectionId::is_server`] whether it is a connection to a server
+/// Use [`ConnectionId::is_server`] to check whether it is a connection to a server
 /// or another. In most client/server applications this is not required as there
 /// is no ambiguity.
 pub struct ConnectionId {
@@ -191,7 +194,6 @@ impl ConnectionId {
     ///
     /// This contains the IP/Port information
     pub fn address(&self) -> Option<Host<&str>> {
-        
         self.url.host()
     }
 
@@ -248,7 +250,7 @@ pub enum ClientNetworkEvent {
 #[derive(Debug, Deref)]
 /// [`NetworkData`] is what is sent over the bevy event system
 ///
-/// Please check the root documentation how to up everything
+/// Please check the root documentation for how to set up everything
 pub struct NetworkData<T> {
     source: ConnectionId,
     #[deref]
@@ -291,7 +293,7 @@ impl Default for NetworkSettings {
 }
 
 #[derive(Default, Copy, Clone, Debug)]
-/// The plugin to add to your bevy [`App`](bevy::prelude::App) when you want
+/// The plugin to add to your bevy [`App`](App) when you want
 /// to instantiate a server
 pub struct ServerPlugin;
 
@@ -308,7 +310,7 @@ impl Plugin for ServerPlugin {
 }
 
 #[derive(Default, Copy, Clone, Debug)]
-/// The plugin to add to your bevy [`App`](bevy::prelude::App) when you want
+/// The plugin to add to your bevy [`App`](App) when you want
 /// to instantiate a client
 pub struct ClientPlugin;
 
@@ -317,13 +319,7 @@ impl Plugin for ClientPlugin {
         app.insert_resource(NetworkClient::new());
         app.add_event::<ClientNetworkEvent>();
         app.init_resource::<NetworkSettings>();
-        app.add_system_to_stage(
-            CoreStage::PreUpdate,
-            client::send_client_network_events,
-        );
-        app.add_system_to_stage(
-            CoreStage::PreUpdate,
-            client::handle_connection_event,
-        );
+        app.add_system_to_stage(CoreStage::PreUpdate, client::send_client_network_events);
+        app.add_system_to_stage(CoreStage::PreUpdate, client::handle_connection_event);
     }
 }
