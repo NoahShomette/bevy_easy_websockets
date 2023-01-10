@@ -308,7 +308,6 @@ pub(crate) fn handle_new_incoming_connections(
                                     }
                                 }
 
-                                debug!("Received new message of length: {}", length);
                             }
 
                             match disconnected_connections.send(conn_id.clone()) {

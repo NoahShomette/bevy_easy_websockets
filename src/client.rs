@@ -313,8 +313,6 @@ pub fn handle_connection_event(
                         );
                     }
                 }
-
-                debug!("Received new message of length: {}", length);
             }
 
             let _ = network_event_sender.send(ClientNetworkEvent::Disconnected);
