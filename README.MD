@@ -113,7 +113,7 @@ It will only receive minor bug fixes from my side, or community supplied ones.
 Supported Platforms
 -------------------
 
-**Windows** and **Wasm** are supported officially however it should work on all platforms though I do not have the capabilities to test Mac or Linux. If it doesn't work on either of those open an issue and help me figure it out!
+**Windows** is supported officially and works. WASM is a goal of the project however it does not work currently. It should work on all other dedicated platforms though I do not have the capabilities to test Mac or Linux. If it doesn't work on either of those open an issue and help me figure it out!
 
 
 Crates using `bevy_simple_websockets`
