@@ -1,8 +1,9 @@
+use std::error::Error;
 use bevy::app::ScheduleRunnerSettings;
 use bevy::prelude::*;
-use bevy_simple_websockets::{ConnectionId, NetworkData, NetworkServer, ServerNetworkEvent};
 use std::net::SocketAddr;
 use std::time::Duration;
+use bevy_easy_websockets::{ConnectionId, NetworkData, NetworkServer, ServerNetworkEvent};
 
 mod shared;
 
@@ -16,7 +17,7 @@ fn main() {
 
     // Before we can register the potential message types, we
     // need to add the plugin
-    app.add_plugin(bevy_simple_websockets::ServerPlugin);
+    app.add_plugin(bevy_easy_websockets::ServerPlugin);
 
     // A good way to ensure that you are not forgetting to register
     // any messages is to register them where they are defined!

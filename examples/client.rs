@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use bevy::prelude::*;
-use bevy_simple_websockets::{ClientNetworkEvent, NetworkClient, NetworkData, NetworkSettings};
+use bevy_easy_websockets::{ClientNetworkEvent, NetworkClient, NetworkData, NetworkSettings};
 use url::Url;
 
 mod shared;
@@ -13,7 +13,7 @@ fn main() {
 
     // You need to add the `ClientPlugin` first before you can register
     // `ClientMessage`s
-    app.add_plugin(bevy_simple_websockets::ClientPlugin);
+    app.add_plugin(bevy_easy_websockets::ClientPlugin);
 
     // A good way to ensure that you are not forgetting to register
     // any messages is to register them where they are defined!

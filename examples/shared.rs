@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use bevy_simple_websockets::{
+use bevy_easy_websockets::{
     AppNetworkClientMessage, AppNetworkServerMessage, ClientMessage, NetworkMessage, ServerMessage,
 };
 
@@ -44,7 +44,7 @@ impl ClientMessage for NewChatMessage {
 
 #[allow(unused)]
 pub fn client_register_network_messages(app: &mut App) {
-    use bevy_simple_websockets::AppNetworkClientMessage;
+    use bevy_easy_websockets::AppNetworkClientMessage;
 
     // The client registers messages that arrives from the server, so that
     // it is prepared to handle them. Otherwise, an error occurs.
@@ -53,7 +53,7 @@ pub fn client_register_network_messages(app: &mut App) {
 
 #[allow(unused)]
 pub fn server_register_network_messages(app: &mut App) {
-    use bevy_simple_websockets::AppNetworkServerMessage;
+    use bevy_easy_websockets::AppNetworkServerMessage;
 
     // The server registers messages that arrives from a client, so that
     // it is prepared to handle them. Otherwise, an error occurs.

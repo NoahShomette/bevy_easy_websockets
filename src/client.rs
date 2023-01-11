@@ -5,7 +5,6 @@ use dashmap::DashMap;
 use derive_more::Display;
 use futures_util::{SinkExt, StreamExt};
 use tokio::{
-    io::AsyncReadExt,
     net::TcpStream,
     runtime::Runtime,
     sync::mpsc::{unbounded_channel, UnboundedSender},

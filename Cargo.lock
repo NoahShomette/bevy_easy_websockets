@@ -280,6 +280,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_easy_websockets"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bincode",
+ "crossbeam-channel",
+ "dashmap",
+ "derive_more",
+ "downcast-rs",
+ "futures-util",
+ "serde",
+ "thiserror",
+ "tokio",
+ "tokio-tungstenite",
+ "tungstenite",
+ "typetag",
+ "url",
+]
+
+[[package]]
 name = "bevy_ecs"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -612,26 +632,6 @@ dependencies = [
  "serde",
  "thiserror",
  "uuid",
-]
-
-[[package]]
-name = "bevy_simple_websockets"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bincode",
- "crossbeam-channel",
- "dashmap",
- "derive_more",
- "downcast-rs",
- "futures-util",
- "serde",
- "thiserror",
- "tokio",
- "tokio-tungstenite",
- "tungstenite",
- "typetag",
- "url",
 ]
 
 [[package]]

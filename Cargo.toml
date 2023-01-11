@@ -1,5 +1,5 @@
 [package]
-name = "bevy_simple_websockets"
+name = "bevy_easy_websockets"
 version = "0.1.0"
 authors = ["Noah Shomette <noahshomette@gmail.com>"]
 edition = "2021"

@@ -27,7 +27,7 @@ can start receiving packets as events of `NetworkData<T>`.
 ## Example Client
 ```rust,no_run
 use bevy::prelude::*;
-use bevy_simple_websockets::{ClientPlugin, NetworkData, NetworkMessage, ServerMessage, ClientNetworkEvent, AppNetworkServerMessage};
+use bevy_easy_websockets::{ClientPlugin, NetworkData, NetworkMessage, ServerMessage, ClientNetworkEvent, AppNetworkServerMessage};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
@@ -72,7 +72,7 @@ fn handle_connection_events(mut network_events: EventReader<ClientNetworkEvent>,
 ## Example Server
 ```rust,no_run
 use bevy::prelude::*;
-use bevy_simple_websockets::{ServerPlugin, NetworkData, NetworkMessage, NetworkServer, ServerMessage, ClientMessage, ServerNetworkEvent, AppNetworkClientMessage};
+use bevy_easy_websockets::{ServerPlugin, NetworkData, NetworkMessage, NetworkServer, ServerMessage, ClientMessage, ServerNetworkEvent, AppNetworkClientMessage};
 
 use serde::{Serialize, Deserialize};
 #[derive(Serialize, Deserialize)]
