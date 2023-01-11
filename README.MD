@@ -1,24 +1,24 @@
 <h1 align="center">
-    Bevy Simple Websockets
+    Bevy Easy Websockets
 </h1>
 
 <p align="center">
-    <a href="https://crates.io/crates/bevy_simple_websockets">
-        <img src="https://img.shields.io/crates/v/bevy_simple_websockets?logo=rust" alt="crates.io">
+    <a href="https://crates.io/crates/bevy_easy_websockets">
+        <img src="https://img.shields.io/crates/v/bevy_easy_websockets?logo=rust" alt="crates.io">
     </a>
-    <a href="https://docs.rs/bevy_simple_websockets">
-        <img src="https://docs.rs/bevy_simple_websockets/badge.svg" alt="docs.rs">
+    <a href="https://docs.rs/bevy_easy_websockets">
+        <img src="https://docs.rs/bevy_easy_websockets/badge.svg" alt="docs.rs">
     </a>
 </p>
 
-> `bevy_simple_websockets` is websocket based networking solution for [bevy](https://bevyengine.org/) games. It is forked from the Bevy_spicy_networking and would not be here if not for that. Thank you!
+> `bevy_easy_websockets` is websocket based networking solution for [bevy](https://bevyengine.org/) games. It is forked from the Bevy_spicy_networking and would not be here if not for that. Thank you!
 
 <hr>
 
 Using tokio as the asynchronous backend along with tungstenite for the websocket implemention, it fully integrates into bevy to allow you to quickly add networking to your game.
 Simply add either the server/client plugins, register the types of messages you plan on receiving and listen for them as events!
 
-Bevy_simple_websockets is intended to support both games and other crates, network messages are generic and are extensible by other downstream crates of whatever library uses Bevy_simple_websockets. This is achieved through the amazing [`typetag`](https://github.com/dtolnay/typetag) crate.
+Bevy_easy_websockets is intended to support both games and other crates, network messages are generic and are extensible by other downstream crates of whatever library uses bevy_easy_websockets. This is achieved through the amazing [`typetag`](https://github.com/dtolnay/typetag) crate.
 
 <hr>
 
@@ -28,16 +28,16 @@ Bevy_simple_websockets is intended to support both games and other crates, netwo
 - [Bevy Version Compatibility](#bevy-version-compatibility)
 - [Supported Platforms](#supported-platforms)
 - [Roadmap](#roadmap)
-- [Crates using `bevy_simple_websockets`](#crates-using-bevy_simple_websockets)
+- [Crates using `bevy_simple_websockets`](#crates-using-bevy_easy_websockets)
 - [Contributing](#contributing)
 
 
 Documentation
 -------------
 
-You can check out the [**online documentation**](https://docs.rs/bevy_simple_websockets), or build it yourself by cloning this repo and running `cargo doc -p bevy_simple_websockets`.
+You can check out the [**online documentation**](https://docs.rs/bevy_easy_websockets), or build it yourself by cloning this repo and running `cargo doc -p bevy_easy_websockets`.
 
-For examples, check out the [examples directory](https://github.com/NoahShomette/bevy_simple_websockets/tree/main/examples).
+For examples, check out the [examples directory](https://github.com/NoahShomette/bevy_easy_websockets/tree/main/examples).
 
 - In `server.rs` you will find a simple chat server, that broadcasts the messages it receives from clients
 - In `client.rs` you will find a simple graphical chat client, where you can connect to a server and send messages to
@@ -48,7 +48,7 @@ is more complete.)
 
 ### Quickstart
 
-1. Add `bevy_simple_websockets`, `serde_derive` and `typetag` to your `Cargo.toml`
+1. Add `bevy_easy_websockets`, `serde_derive` and `typetag` to your `Cargo.toml`
 2. Create the messages you wish to exchange beetween a client and server, or vice-versa.
     - Implement Serialize and Deserialize from Serde on it
     - Implement `NetworkMessage`, and make sure to annotate it with `typetag::serde`
@@ -103,7 +103,7 @@ Bevy Version Compatibility
 
 Simply pick the version compatible to your bevy version:
 
-| Bevy | bevy_simple_websockets  |
+| Bevy | bevy_easy_websockets  |
 | :-------------------: | :---: |
 |          0.9          |  0.1  |
 
@@ -116,7 +116,7 @@ Supported Platforms
 **Windows** is supported officially and works. WASM is a goal of the project however it does not work currently. It should work on all other dedicated platforms though I do not have the capabilities to test Mac or Linux. If it doesn't work on either of those open an issue and help me figure it out!
 
 
-Crates using `bevy_simple_websockets`
+Crates using `bevy_easy_websockets`
 --------------------
 
 > Currently none, you can help by expanding this list. Just send a PR and add it to the table below!
