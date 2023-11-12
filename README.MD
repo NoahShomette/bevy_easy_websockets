@@ -1,3 +1,5 @@
+> This is now archived and unsupported (more than it already was). https://github.com/jamescarterbell/bevy_eventwork is a better, more featurefull, and more adaptable crate that has open PRs and forks that support WASM, something this crate would not be able to do. As such there is no reason to use this crate when `Bevy_eventwork` exists. If you would like to use a better version of this crate, use `bevy_eventwork` and `https://github.com/NoahShomette/bevy_eventwork_mod_websockets`. That gives you a WebSocket version of this crate that supports WASM and Native. Thank you.
+
 <h1 align="center">
     Bevy Easy Websockets
 </h1>
